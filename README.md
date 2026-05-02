@@ -307,5 +307,4 @@ sudo systemctl enable lumin.socket
 ## License
 
 MIT
-
 ````
