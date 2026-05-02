@@ -27,17 +27,7 @@ jobs:
           go-version: '1.22'
           cache: true
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libdbus-1-dev \
-            libsystemd-dev \
-            cmake \
-            gcc \
-            g++
-
-      - name: Build llama.cpp early (provide llama.h for CGo)
+      - name: Build llama.cpp (headers for CGo)
         run: |
           mkdir -p third_party
           if [ ! -d third_party/llama.cpp ]; then
@@ -49,6 +39,16 @@ jobs:
           mkdir -p ../../lib
           cp build/src/libllama.a ../../lib/ || true
           cp llama.h ../../lib/ || true
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libdbus-1-dev \
+            libsystemd-dev \
+            cmake \
+            gcc \
+            g++
 
       - name: Run go fmt (auto-fix)
         run: |
@@ -64,11 +64,11 @@ jobs:
           echo "Dependencies resolved"
 
       - name: Run go vet
+        run: go vet ./...
         env:
           CGO_ENABLED: 1
           CGO_CFLAGS: "-I$(pwd)/lib"
           CGO_LDFLAGS: "-L$(pwd)/lib -lllama"
-        run: go vet ./...
 
       - name: Build daemon
         run: make build
