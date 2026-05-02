@@ -108,11 +108,11 @@ jobs:
 
       - name: Build llama.cpp for linting
         run: |
-          mkdir -p vendor
-          if [ ! -d vendor/llama.cpp ]; then
-            git clone --depth 1 https://github.com/ggml-org/llama.cpp vendor/llama.cpp
+          mkdir -p third_party
+          if [ ! -d third_party/llama.cpp ]; then
+            git clone --depth 1 https://github.com/ggml-org/llama.cpp third_party/llama.cpp
           fi
-          cd vendor/llama.cpp
+          cd third_party/llama.cpp
           cmake -B build -DLLAMA_CUDA=OFF -DBUILD_SHARED_LIBS=OFF
           cmake --build build --config Release -j$(nproc)
           mkdir -p ../../lib
@@ -123,9 +123,10 @@ jobs:
         uses: golangci/golangci-lint-action@v3
         with:
           version: latest
-          args: --timeout=5m
+          args: --timeout=5m --out-format=colored-line-number
         env:
           CGO_ENABLED: 1
+          GOFLAGS: -mod=mod
           CGO_CFLAGS: "-I$(pwd)/lib"
           CGO_LDFLAGS: "-L$(pwd)/lib -lllama"
 
@@ -176,11 +177,11 @@ jobs:
 
       - name: Build llama.cpp for tests
         run: |
-          mkdir -p vendor
-          if [ ! -d vendor/llama.cpp ]; then
-            git clone --depth 1 https://github.com/ggml-org/llama.cpp vendor/llama.cpp
+          mkdir -p third_party
+          if [ ! -d third_party/llama.cpp ]; then
+            git clone --depth 1 https://github.com/ggml-org/llama.cpp third_party/llama.cpp
           fi
-          cd vendor/llama.cpp
+          cd third_party/llama.cpp
           cmake -B build -DLLAMA_CUDA=OFF -DBUILD_SHARED_LIBS=OFF
           cmake --build build --config Release -j$(nproc)
           mkdir -p ../../lib
@@ -188,7 +189,7 @@ jobs:
           cp llama.h ../../lib/ || true
 
       - name: Run tests
-        run: go test -v -race -coverprofile=coverage.out ./...
+        run: go test -mod=mod -v -race -coverprofile=coverage.out ./...
         env:
           CGO_ENABLED: 1
 

@@ -1,4 +1,4 @@
-github.com/coreos/go-systemd/v22 v22.5.0 h1:RrqgkjxQmBA2rByLRfLr5DcyXj4K5bNYrDkbtceI8A=
-github.com/coreos/go-systemd/v22 v22.5.0/go.mod h1:xO0FLkIi5MaZbS/uF6/NMOwVU0WL4arL3d7CCXiF5g=
-github.com/godbus/dbus/v5 v5.1.0 h1:gQySB7GO8NxR6yS+mKBq6K0G5qUy4C4JM7yDBhSXHY=
-github.com/godbus/dbus/v5 v5.1.0/go.mod h1:xhWf0FNVVc6UfZy3KQJ5l+8J3nzsCC440dYxboUwintw=
+github.com/coreos/go-systemd/v22 v22.5.0 h1:RrqgGjYQKalulkV8NGVIfkXQf6YYmOyiJKk8iXXhfZs=
+github.com/coreos/go-systemd/v22 v22.5.0/go.mod h1:Y58oyj3AT4RCenI/lSvhwexgC+NSVTIJ3seZv2GcEnc=
+github.com/godbus/dbus/v5 v5.1.0 h1:4KLkAxT3aOY8Li4FRJe/KvhoNFFxo0m6fNuFUO8QJUk=
+github.com/godbus/dbus/v5 v5.1.0/go.mod h1:xhWf0FNVPg57R7Z0UbKHbJfkEywrmjJnf7w5xrFpKfA=
