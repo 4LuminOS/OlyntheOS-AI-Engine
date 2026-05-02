@@ -37,6 +37,19 @@ jobs:
             gcc \
             g++
 
+      - name: Build llama.cpp early (provide llama.h for CGo)
+        run: |
+          mkdir -p third_party
+          if [ ! -d third_party/llama.cpp ]; then
+            git clone --depth 1 https://github.com/ggml-org/llama.cpp third_party/llama.cpp
+          fi
+          cd third_party/llama.cpp
+          cmake -B build -DLLAMA_CUDA=OFF -DBUILD_SHARED_LIBS=OFF
+          cmake --build build --config Release -j$(nproc)
+          mkdir -p ../../lib
+          cp build/src/libllama.a ../../lib/ || true
+          cp llama.h ../../lib/ || true
+
       - name: Run go fmt (auto-fix)
         run: |
           echo "Formatting Go code..."
@@ -51,6 +64,10 @@ jobs:
           echo "Dependencies resolved"
 
       - name: Run go vet
+        env:
+          CGO_ENABLED: 1
+          CGO_CFLAGS: "-I$(pwd)/lib"
+          CGO_LDFLAGS: "-L$(pwd)/lib -lllama"
         run: go vet ./...
 
       - name: Build daemon
