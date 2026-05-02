@@ -1,4 +1,4 @@
-# lumin-engine
+# Lumin-engine
 
 `lumin-engine` is a Go-based local assistant engine that exposes a Unix socket API, manages model lifecycle, and routes tool calls through a permissions layer. It runs as a systemd service, listens on a Unix socket, and bridges natural language requests to safe OS actions.
 
