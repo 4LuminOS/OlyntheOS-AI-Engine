@@ -22,7 +22,7 @@ llama:
 			-DCMAKE_BUILD_TYPE=Release && \
 		cmake --build build --config Release -j$$(nproc)
 	@cp vendor/llama.cpp/build/src/libllama.a lib/libllama.a
-	@cp vendor/llama.cpp/llama.h lib/llama.h
+	@cp vendor/llama.cpp/include/llama.h lib/llama.h
 	@echo "✓ libllama.a built"
 
 # Build Go binary
