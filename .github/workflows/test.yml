@@ -1,0 +1,234 @@
+name: Olynthe AI engine 
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.22'
+          cache: true
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libdbus-1-dev \
+            libsystemd-dev \
+            cmake \
+            gcc \
+            g++
+
+      - name: Run go fmt (auto-fix)
+        run: |
+          echo "Formatting Go code..."
+          gofmt -s -w .
+          echo "Go code formatted"
+
+      - name: Run go mod tidy
+        run: |
+          echo "Running go mod tidy..."
+          go mod tidy
+          go mod download
+          echo "Dependencies resolved"
+
+      - name: Run go vet
+        run: go vet ./...
+
+      - name: Build daemon
+        run: make build
+        env:
+          CGO_ENABLED: 1
+          LDFLAGS: "-lm -lpthread"
+
+      - name: Build model-wizard CLI
+        run: go build -o bin/model-wizard ./cmd/model-wizard
+
+      - name: Verify binary
+        run: |
+          if [ ! -f bin/lumin-engine ]; then
+            echo "Failed to build lumin-engine binary"
+            exit 1
+          fi
+          ./bin/lumin-engine -h || echo "Binary built successfully"
+
+      - name: Check for common issues
+        run: |
+          echo "Checking for TODO/FIXME comments..."
+          if grep -r "TODO\|FIXME" --include="*.go" ./cmd ./internal; then
+            echo "Found TODO/FIXME comments in code"
+            exit 1
+          fi
+          echo "No TODO/FIXME comments found"
+
+      - name: Verify go.mod dependencies
+        run: go mod verify
+
+      - name: List files structure
+        run: |
+          echo "Repository structure:"
+          find . -type f -name "*.go" | head -20
+          echo "Build artifacts:"
+          ls -la bin/ || echo "No bin directory"
+
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.22'
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake libdbus-1-dev libsystemd-dev
+
+      - name: Build llama.cpp for linting
+        run: |
+          mkdir -p vendor
+          if [ ! -d vendor/llama.cpp ]; then
+            git clone --depth 1 https://github.com/ggml-org/llama.cpp vendor/llama.cpp
+          fi
+          cd vendor/llama.cpp
+          cmake -B build -DLLAMA_CUDA=OFF -DBUILD_SHARED_LIBS=OFF
+          cmake --build build --config Release -j$(nproc)
+          mkdir -p ../../lib
+          cp build/src/libllama.a ../../lib/ || true
+          cp llama.h ../../lib/ || true
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+          args: --timeout=5m
+        env:
+          CGO_ENABLED: 1
+          CGO_CFLAGS: "-I$(pwd)/lib"
+          CGO_LDFLAGS: "-L$(pwd)/lib -lllama"
+
+  security:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.22'
+
+      - name: Run Gosec Security Scanner
+        uses: securego/gosec@master
+        with:
+          args: '-no-fail -fmt sarif -out gosec-report.sarif ./...'
+        continue-on-error: true
+
+      - name: Upload Gosec report to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: gosec-report.sarif
+        continue-on-error: true
+
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.22'
+          cache: true
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libdbus-1-dev \
+            libsystemd-dev \
+            cmake
+
+      - name: Build llama.cpp for tests
+        run: |
+          mkdir -p vendor
+          if [ ! -d vendor/llama.cpp ]; then
+            git clone --depth 1 https://github.com/ggml-org/llama.cpp vendor/llama.cpp
+          fi
+          cd vendor/llama.cpp
+          cmake -B build -DLLAMA_CUDA=OFF -DBUILD_SHARED_LIBS=OFF
+          cmake --build build --config Release -j$(nproc)
+          mkdir -p ../../lib
+          cp build/src/libllama.a ../../lib/ || true
+          cp llama.h ../../lib/ || true
+
+      - name: Run tests
+        run: go test -v -race -coverprofile=coverage.out ./...
+        env:
+          CGO_ENABLED: 1
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.out
+          flags: unittests
+          name: codecov-umbrella
+        continue-on-error: true
+
+  documentation:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verify README exists
+        run: |
+          if [ ! -f README.md ]; then
+            echo "README.md not found"
+            exit 1
+          fi
+          echo "README.md verified"
+
+      - name: Check for required doc sections
+        run: |
+          echo "Checking README sections..."
+          grep -q "Build" README.md || echo "Warning: 'Build' section not found in README"
+          grep -q "Install" README.md || echo "Warning: 'Install' section not found in README"
+          grep -q "License" README.md || echo "Warning: 'License' section not found in README"
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: [build, lint, test]
+    if: always()
+
+    steps:
+      - name: Check workflow status
+        run: |
+          if [ "${{ needs.build.result }}" = "failure" ] || [ "${{ needs.lint.result }}" = "failure" ] || [ "${{ needs.test.result }}" = "failure" ]; then
+            echo "❌ Build/Lint/Test failed"
+            exit 1
+          fi
+          echo "✅ All checks passed"
