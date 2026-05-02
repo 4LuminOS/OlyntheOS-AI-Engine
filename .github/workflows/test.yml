@@ -44,8 +44,7 @@ jobs:
           cmake -B build -DLLAMA_CUDA=OFF -DBUILD_SHARED_LIBS=OFF
           cmake --build build --config Release -j$(nproc)
           mkdir -p ../../lib
-          cp build/src/libllama.a ../../lib/ || true
-          cp -r include/* ../../lib/ || true
+          cp build/src/libllama.a ../../lib/
 
       - name: Run go fmt (auto-fix)
         run: |
@@ -64,7 +63,7 @@ jobs:
         run: go vet ./...
         env:
           CGO_ENABLED: 1
-          CGO_CFLAGS: "-I${{ github.workspace }}/lib"
+          CGO_CFLAGS: "-I${{ github.workspace }}/third_party/llama.cpp/include -I${{ github.workspace }}/third_party/llama.cpp/ggml/include"
           CGO_LDFLAGS: "-L${{ github.workspace }}/lib -lllama"
 
       - name: Build daemon
@@ -130,8 +129,7 @@ jobs:
           cmake -B build -DLLAMA_CUDA=OFF -DBUILD_SHARED_LIBS=OFF
           cmake --build build --config Release -j$(nproc)
           mkdir -p ../../lib
-          cp build/src/libllama.a ../../lib/ || true
-          cp -r include/* ../../lib/ || true
+          cp build/src/libllama.a ../../lib/
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
@@ -140,7 +138,7 @@ jobs:
           args: --timeout=5m
         env:
           CGO_ENABLED: 1
-          CGO_CFLAGS: "-I${{ github.workspace }}/lib"
+          CGO_CFLAGS: "-I${{ github.workspace }}/third_party/llama.cpp/include -I${{ github.workspace }}/third_party/llama.cpp/ggml/include"
           CGO_LDFLAGS: "-L${{ github.workspace }}/lib -lllama"
 
   security:
@@ -198,14 +196,13 @@ jobs:
           cmake -B build -DLLAMA_CUDA=OFF -DBUILD_SHARED_LIBS=OFF
           cmake --build build --config Release -j$(nproc)
           mkdir -p ../../lib
-          cp build/src/libllama.a ../../lib/ || true
-          cp -r include/* ../../lib/ || true
+          cp build/src/libllama.a ../../lib/
 
       - name: Run tests
         run: go test -v -race -coverprofile=coverage.out ./...
         env:
           CGO_ENABLED: 1
-          CGO_CFLAGS: "-I${{ github.workspace }}/lib"
+          CGO_CFLAGS: "-I${{ github.workspace }}/third_party/llama.cpp/include -I${{ github.workspace }}/third_party/llama.cpp/ggml/include"
           CGO_LDFLAGS: "-L${{ github.workspace }}/lib -lllama"
 
       - name: Upload coverage to Codecov
