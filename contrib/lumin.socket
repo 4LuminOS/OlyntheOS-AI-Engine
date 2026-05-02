@@ -1,0 +1,13 @@
+[Unit]
+Description=LuminAI Engine Socket
+Documentation=https://github.com/kyzen7/lumin-engine
+Before=lumin-engine.service
+
+[Socket]
+ListenStream=%t/lumin/engine.sock
+SocketMode=0666
+Backlog=5
+Accept=no
+
+[Install]
+WantedBy=sockets.target

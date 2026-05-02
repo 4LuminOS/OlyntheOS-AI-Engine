@@ -1,0 +1,23 @@
+[Unit]
+Description=Lumin AI Engine
+Documentation=https://github.com/luminai/lumin-engine
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/lib/lumin/lumin-engine -config /etc/lumin/engine.toml -socket /run/lumin/engine.sock
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+# Hardening
+PrivateTmp=yes
+NoNewPrivileges=yes
+ProtectHome=yes
+ProtectSystem=strict
+ReadWritePaths=/run/lumin /home /var/cache/lumin
+
+[Install]
+WantedBy=default.target

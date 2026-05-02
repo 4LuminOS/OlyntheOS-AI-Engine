@@ -1,0 +1,8 @@
+module lumin-engine
+
+go 1.22
+
+require (
+	github.com/godbus/dbus/v5 v5.1.0
+	github.com/coreos/go-systemd/v22 v22.5.0
+)

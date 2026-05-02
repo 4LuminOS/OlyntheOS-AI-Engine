@@ -1,0 +1,10 @@
+# Local build artifacts
+/bin/
+/build/
+/lib/libllama.a
+/lib/llama.h
+
+# Editor files
+*.swp
+*.swo
+.DS_Store
