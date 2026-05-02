@@ -14,10 +14,17 @@ llama:
 		echo "Cloning llama.cpp..."; \
 		git clone --depth 1 https://github.com/ggml-org/llama.cpp vendor/llama.cpp; \
 	fi
-	@echo "Building llama.cpp with CUDA support..."
+	@echo "Building llama.cpp (auto CUDA/CPU)..."
+	@CUDA_FLAG="-DGGML_CUDA=OFF"; \
+	if command -v nvcc >/dev/null 2>&1; then \
+		CUDA_FLAG="-DGGML_CUDA=ON"; \
+		echo "CUDA toolkit detected, enabling GGML_CUDA"; \
+	else \
+		echo "CUDA toolkit not found, building CPU backend"; \
+	fi; \
 	@cd vendor/llama.cpp && \
 		cmake -B build \
-			-DLLAMA_CUDA=ON \
+			$$CUDA_FLAG \
 			-DBUILD_SHARED_LIBS=OFF \
 			-DCMAKE_BUILD_TYPE=Release && \
 		cmake --build build --config Release -j$$(nproc)
