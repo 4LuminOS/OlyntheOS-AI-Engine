@@ -73,7 +73,7 @@ jobs:
           LDFLAGS: "-lm -lpthread"
 
       - name: Build model-wizard CLI
-        run: go build -o bin/model-wizard ./cmd/model-wizard
+        run: go build -mod=mod -o bin/model-wizard ./cmd/model-wizard
 
       - name: Verify binary
         run: |

@@ -38,7 +38,7 @@ $(BINARY): llama
 	@CGO_ENABLED=1 \
 		CGO_CFLAGS="-I$(PWD)/vendor/llama.cpp/include -I$(PWD)/vendor/llama.cpp/ggml/include" \
 		CGO_LDFLAGS="-L$(PWD)/lib -lllama" \
-		go build -o $(BINARY) ./cmd/lumin-engine
+		go build -mod=mod -o $(BINARY) ./cmd/lumin-engine
 	@echo "✓ $(BINARY) built"
 
 run: build
