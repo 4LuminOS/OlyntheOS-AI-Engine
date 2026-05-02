@@ -29,17 +29,21 @@ llama:
 		-DCMAKE_BUILD_TYPE=Release && \
 	cmake --build build --config Release -j$$(nproc)
 	@cp vendor/llama.cpp/build/src/libllama.a lib/libllama.a
-	@cp vendor/llama.cpp/build/src/libggml*.a lib/ 2>/dev/null || true
+	@find vendor/llama.cpp/build -type f -name 'libggml*.a' -exec cp {} lib/ \; 2>/dev/null || true
 	@echo "✓ libllama.a built"
 
 # Build Go binary
 $(BINARY): llama
 	@mkdir -p $(BIN_DIR)
 	@echo "Building lumin-engine..."
-	@GGML_LIBS="$$(ls $(PWD)/lib/libggml*.a 2>/dev/null || true)"; \
+	@GGML_LIBS="$$(find $(PWD)/lib -maxdepth 1 -type f -name 'libggml*.a' | sort | tr '\n' ' ')"; \
+	if [ -z "$$GGML_LIBS" ]; then \
+		echo "Missing ggml static libraries in lib/. Run 'make llama' first."; \
+		exit 1; \
+	fi; \
 	CGO_ENABLED=1 \
 		CGO_CFLAGS="-I$(PWD)/vendor/llama.cpp/include -I$(PWD)/vendor/llama.cpp/ggml/include" \
-		CGO_LDFLAGS="-L$(PWD)/lib -lllama $$GGML_LIBS -lstdc++ -lm -ldl -pthread" \
+		CGO_LDFLAGS="-Wl,--start-group $(PWD)/lib/libllama.a $$GGML_LIBS -Wl,--end-group -lstdc++ -lm -ldl -pthread" \
 		go build -mod=mod -o $(BINARY) ./cmd/lumin-engine
 	@echo "✓ $(BINARY) built"
 

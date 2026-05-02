@@ -45,7 +45,7 @@ jobs:
           cmake --build build --config Release -j$(nproc)
           mkdir -p ../../lib
           cp build/src/libllama.a ../../lib/
-          cp build/src/libggml*.a ../../lib/ || true
+          find build -type f -name 'libggml*.a' -exec cp {} ../../lib/ \; || true
 
       - name: Run go fmt (auto-fix)
         run: |
@@ -65,7 +65,7 @@ jobs:
         env:
           CGO_ENABLED: 1
           CGO_CFLAGS: "-I${{ github.workspace }}/third_party/llama.cpp/include -I${{ github.workspace }}/third_party/llama.cpp/ggml/include"
-          CGO_LDFLAGS: "-L${{ github.workspace }}/lib -lllama -lggml -lggml-base -lggml-cpu -lstdc++ -lm -ldl -pthread"
+          CGO_LDFLAGS: "-L${{ github.workspace }}/lib -Wl,--start-group -lllama -lggml -lggml-base -lggml-cpu -Wl,--end-group -lstdc++ -lm -ldl -pthread"
 
       - name: Build daemon
         run: make build
@@ -131,7 +131,7 @@ jobs:
           cmake --build build --config Release -j$(nproc)
           mkdir -p ../../lib
           cp build/src/libllama.a ../../lib/
-          cp build/src/libggml*.a ../../lib/ || true
+          find build -type f -name 'libggml*.a' -exec cp {} ../../lib/ \; || true
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
@@ -141,7 +141,7 @@ jobs:
         env:
           CGO_ENABLED: 1
           CGO_CFLAGS: "-I${{ github.workspace }}/third_party/llama.cpp/include -I${{ github.workspace }}/third_party/llama.cpp/ggml/include"
-          CGO_LDFLAGS: "-L${{ github.workspace }}/lib -lllama -lggml -lggml-base -lggml-cpu -lstdc++ -lm -ldl -pthread"
+          CGO_LDFLAGS: "-L${{ github.workspace }}/lib -Wl,--start-group -lllama -lggml -lggml-base -lggml-cpu -Wl,--end-group -lstdc++ -lm -ldl -pthread"
 
   security:
     runs-on: ubuntu-latest
@@ -199,14 +199,14 @@ jobs:
           cmake --build build --config Release -j$(nproc)
           mkdir -p ../../lib
           cp build/src/libllama.a ../../lib/
-          cp build/src/libggml*.a ../../lib/ || true
+          find build -type f -name 'libggml*.a' -exec cp {} ../../lib/ \; || true
 
       - name: Run tests
         run: go test -v -race -coverprofile=coverage.out ./...
         env:
           CGO_ENABLED: 1
           CGO_CFLAGS: "-I${{ github.workspace }}/third_party/llama.cpp/include -I${{ github.workspace }}/third_party/llama.cpp/ggml/include"
-          CGO_LDFLAGS: "-L${{ github.workspace }}/lib -lllama -lggml -lggml-base -lggml-cpu -lstdc++ -lm -ldl -pthread"
+          CGO_LDFLAGS: "-L${{ github.workspace }}/lib -Wl,--start-group -lllama -lggml -lggml-base -lggml-cpu -Wl,--end-group -lstdc++ -lm -ldl -pthread"
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
