@@ -25,7 +25,7 @@ func NewExecutor(policy *permissions.Policy, auditLogPath string) *Executor {
 func (e *Executor) Execute(name string, raw json.RawMessage) (any, error) {
 	// Check if tool is enabled
 	if !e.policy.IsEnabled(name) {
-		e.auditLog(name, "DENIED", "tool disabled")
+		e.writeAuditLog(name, "DENIED", "tool disabled")
 		return nil, fmt.Errorf("tool disabled: %s", name)
 	}
 
