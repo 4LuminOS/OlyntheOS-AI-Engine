@@ -29,15 +29,17 @@ llama:
 		-DCMAKE_BUILD_TYPE=Release && \
 	cmake --build build --config Release -j$$(nproc)
 	@cp vendor/llama.cpp/build/src/libllama.a lib/libllama.a
+	@cp vendor/llama.cpp/build/src/libggml*.a lib/ 2>/dev/null || true
 	@echo "✓ libllama.a built"
 
 # Build Go binary
 $(BINARY): llama
 	@mkdir -p $(BIN_DIR)
 	@echo "Building lumin-engine..."
-	@CGO_ENABLED=1 \
+	@GGML_LIBS="$$(ls $(PWD)/lib/libggml*.a 2>/dev/null || true)"; \
+	CGO_ENABLED=1 \
 		CGO_CFLAGS="-I$(PWD)/vendor/llama.cpp/include -I$(PWD)/vendor/llama.cpp/ggml/include" \
-		CGO_LDFLAGS="-L$(PWD)/lib -lllama" \
+		CGO_LDFLAGS="-L$(PWD)/lib -lllama $$GGML_LIBS -lstdc++ -lm -ldl -pthread" \
 		go build -mod=mod -o $(BINARY) ./cmd/lumin-engine
 	@echo "✓ $(BINARY) built"
 
