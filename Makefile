@@ -22,12 +22,12 @@ llama:
 	else \
 		echo "CUDA toolkit not found, building CPU backend"; \
 	fi; \
-	@cd vendor/llama.cpp && \
-		cmake -B build \
-			$$CUDA_FLAG \
-			-DBUILD_SHARED_LIBS=OFF \
-			-DCMAKE_BUILD_TYPE=Release && \
-		cmake --build build --config Release -j$$(nproc)
+	cd vendor/llama.cpp && \
+	cmake -B build \
+		$$CUDA_FLAG \
+		-DBUILD_SHARED_LIBS=OFF \
+		-DCMAKE_BUILD_TYPE=Release && \
+	cmake --build build --config Release -j$$(nproc)
 	@cp vendor/llama.cpp/build/src/libllama.a lib/libllama.a
 	@echo "✓ libllama.a built"
 

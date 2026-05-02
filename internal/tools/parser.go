@@ -58,7 +58,8 @@ func (p *StreamParser) Feed(chunk string) []Call {
 				// Found [[, check for "tool:"
 				p.state = StateBracket2
 				p.bracketPos = 2
-			} else if ch == '[' {
+			} else if ch == ']' {
+				// Found ], reset bracket position
 				p.bracketPos = 1
 			} else {
 				// False alarm, go back to searching
