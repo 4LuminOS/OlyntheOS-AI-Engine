@@ -5,13 +5,14 @@ package agent
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
 	"strings"
 
-	"github.com/yourusername/lumin-engine/internal/permissions"
-	"github.com/yourusername/lumin-engine/internal/tools"
+	"lumin-engine/internal/permissions"
+	"lumin-engine/internal/tools"
 )
 
 // MaxIterations caps the agent loop to prevent infinite cycles.
@@ -308,7 +309,30 @@ func (a *Agent) executeChecked(call *ParsedToolCall) *tools.Result {
 	}
 
 	// 3. Execute via the tool executor (internal/tools/executor.go).
-	result := a.executor.Execute(call.Name, call.Arguments)
+	rawArgs, err := json.Marshal(call.Arguments)
+	if err != nil {
+		return &tools.Result{Error: fmt.Sprintf("failed to encode tool arguments: %v", err)}
+	}
+
+	execResult, execErr := a.executor.Execute(call.Name, rawArgs)
+	result := &tools.Result{}
+	if execErr != nil {
+		result.Error = execErr.Error()
+	} else {
+		switch v := execResult.(type) {
+		case nil:
+			result.Output = "ok"
+		case string:
+			result.Output = v
+		default:
+			b, mErr := json.Marshal(v)
+			if mErr != nil {
+				result.Output = fmt.Sprintf("%v", v)
+			} else {
+				result.Output = string(b)
+			}
+		}
+	}
 
 	// 4. Audit log — always record what happened.
 	a.log.Info("tool executed",
