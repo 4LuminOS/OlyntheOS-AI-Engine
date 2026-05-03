@@ -43,7 +43,7 @@ $(BINARY): llama
 	fi; \
 	CGO_ENABLED=1 \
 		CGO_CFLAGS="-I$(PWD)/vendor/llama.cpp/include -I$(PWD)/vendor/llama.cpp/ggml/include" \
-		CGO_LDFLAGS="-Wl,--start-group $(PWD)/lib/libllama.a $$GGML_LIBS -Wl,--end-group -lstdc++ -lm -ldl -pthread" \
+		CGO_LDFLAGS="-Wl,--start-group $(PWD)/lib/libllama.a $$GGML_LIBS -Wl,--end-group -lstdc++ -lm -ldl -pthread -fopenmp" \
 		go build -mod=mod -o $(BINARY) ./cmd/lumin-engine
 	@echo "✓ $(BINARY) built"
 

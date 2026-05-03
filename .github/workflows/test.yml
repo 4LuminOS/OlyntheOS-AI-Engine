@@ -65,7 +65,7 @@ jobs:
         env:
           CGO_ENABLED: 1
           CGO_CFLAGS: "-I${{ github.workspace }}/third_party/llama.cpp/include -I${{ github.workspace }}/third_party/llama.cpp/ggml/include"
-          CGO_LDFLAGS: "-L${{ github.workspace }}/lib -Wl,--start-group -lllama -lggml -lggml-base -lggml-cpu -Wl,--end-group -lstdc++ -lm -ldl -pthread"
+          CGO_LDFLAGS: "-L${{ github.workspace }}/lib -Wl,--start-group -lllama -lggml -lggml-base -lggml-cpu -Wl,--end-group -lstdc++ -lm -ldl -pthread -fopenmp"
 
       - name: Build daemon
         run: make build
@@ -141,7 +141,7 @@ jobs:
         env:
           CGO_ENABLED: 1
           CGO_CFLAGS: "-I${{ github.workspace }}/third_party/llama.cpp/include -I${{ github.workspace }}/third_party/llama.cpp/ggml/include"
-          CGO_LDFLAGS: "-L${{ github.workspace }}/lib -Wl,--start-group -lllama -lggml -lggml-base -lggml-cpu -Wl,--end-group -lstdc++ -lm -ldl -pthread"
+          CGO_LDFLAGS: "-L${{ github.workspace }}/lib -Wl,--start-group -lllama -lggml -lggml-base -lggml-cpu -Wl,--end-group -lstdc++ -lm -ldl -pthread -fopenmp"
 
   security:
     runs-on: ubuntu-latest
@@ -206,7 +206,7 @@ jobs:
         env:
           CGO_ENABLED: 1
           CGO_CFLAGS: "-I${{ github.workspace }}/third_party/llama.cpp/include -I${{ github.workspace }}/third_party/llama.cpp/ggml/include"
-          CGO_LDFLAGS: "-L${{ github.workspace }}/lib -Wl,--start-group -lllama -lggml -lggml-base -lggml-cpu -Wl,--end-group -lstdc++ -lm -ldl -pthread"
+          CGO_LDFLAGS: "-L${{ github.workspace }}/lib -Wl,--start-group -lllama -lggml -lggml-base -lggml-cpu -Wl,--end-group -lstdc++ -lm -ldl -pthread -fopenmp"
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
